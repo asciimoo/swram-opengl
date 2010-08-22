@@ -20,18 +20,24 @@ class Reader(Thread):
 	def run(self):
 		print 'Waithing for data on stdin'
 		while True:
-			self.read_entities()
+			try:
+				self.read_entities()
+			except:
+				break
 
 	def read_entities(self):
 		entities = []
-		while True:
-			line = sys.stdin.readline()
-			if 'done' in line:
+		line = sys.stdin.readline()
+		if not line:
+			raise Exception()
+		while line:
+			if line.startswith('done'):
 				break
 			try:
-				entities.append(SwarmEntity(line))
+				entities.append(SwarmEntity(line.strip()))
 			except:
-				print 'Invalid line:', line
+				print 'Invalid line: %s' % line.strip()
+			line = sys.stdin.readline()
 		self.done(entities)
 
 	def done(self, entities):
@@ -48,7 +54,7 @@ def idle():
 
 def display():
 	axis()
-	glColor3f(0.0, 1.0, 0.0)
+	glColor4f(0.0, 1.0, 0.0, 0.75)
 	mySphere = gluNewQuadric()
 	gluQuadricDrawStyle(mySphere, GLU_LINE)
 	
@@ -56,7 +62,7 @@ def display():
 	for entity in Reader.swarm_entities:
 		glPushMatrix()
 		glTranslatef(entity.x, entity.y, entity.z)
-		gluSphere(mySphere, 1.0, 12, 12)
+		gluSphere(mySphere, 0.2, 32, 32)
 		glPopMatrix()
 	Reader.lock.release()
 	
